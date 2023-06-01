@@ -1,11 +1,15 @@
 <template>
   <div>
-<!--    <header>-->
-<!--      <span>当前图片：</span>-->
-<!--      <el-button>切换</el-button>-->
-<!--    </header>-->
+    <header>
+      <el-switch
+        v-model="img1"
+        inline-prompt
+        active-text="1"
+        inactive-text="2"
+      ></el-switch>
+    </header>
     <main :style="sizeStyleObj">
-      <div class="img-container img-container1" :style="{width:container1Width}">
+      <div class="img-container img-container1" :style="{width: dec2per(position)}">
         <el-upload
           drag
           class="upload upload1"
@@ -32,7 +36,7 @@
         <img class="uploaded-img uploaded-img2" v-if="urlRef2" :src="urlRef2" alt="img2">
       </div>
       <movable-divider
-        :init="0.5"
+        :position="position"
         :container-width="width"
         @move="handleMove"
       ></movable-divider>
@@ -46,7 +50,7 @@ const DEFAULT_HEIGHT = 720
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import getImgSize from './utils/getImgSize.js'
 import useBlobUrl from '@/composables/useBlobUrl'
@@ -88,8 +92,11 @@ const beforeUpload2 = (file: File) => {
   return false
 }
 
-const container1Width = ref('50%')
-const handleMove = (v: number) => container1Width.value = dec2per(v)
+const position = ref(0.5)
+const handleMove = (v: number) => position.value = v
+
+const img1 = ref(true)
+watch(img1, nv => position.value = Number(nv))
 </script>
 
 <style scoped lang="less">
