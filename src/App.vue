@@ -1,151 +1,230 @@
 <template>
-  <div>
-    <header>
-      <el-switch
-        v-model="img1"
-        inline-prompt
-        active-text="1"
-        inactive-text="2"
-      ></el-switch>
+  <div class="app">
+    <header class="page-header">
+      <span class="cur-img">当前：{{ curImgName }}</span>
+      <el-button-group>
+        <el-button @click="switchImg">
+          <el-icon class="el-icon--left">
+            <Switch></Switch>
+          </el-icon>
+          切换(S)
+        </el-button>
+        <el-button @click="switchFullscreen">
+          <el-icon class="el-icon--left">
+            <full-screen></full-screen>
+          </el-icon>
+          全屏(F)
+        </el-button>
+        <el-button @click="reset">
+          <el-icon class="el-icon--left">
+            <refresh></refresh>
+          </el-icon>
+          重置(R)
+        </el-button>
+        <el-button @click="toggle">
+          <el-icon>
+            <unlock v-if="enableUpload"></unlock>
+            <lock v-else></lock>
+          </el-icon>
+          上传已{{ text }}(L)
+        </el-button>
+        <el-popover trigger="click" :width="300" :hide-after="0">
+          <template #reference>
+            <el-button>
+              <el-icon class="el-icon--left">
+                <question-filled></question-filled>
+              </el-icon>
+              帮助
+            </el-button>
+          </template>
+          <template #default>
+            <help-doc></help-doc>
+          </template>
+        </el-popover>
+      </el-button-group>
     </header>
-    <main :style="sizeStyleObj">
-      <div class="img-container img-container1" :style="{width: dec2per(position)}">
-        <el-upload
-          drag
-          class="upload upload1"
-          :show-file-list="false"
-          :before-upload="beforeUpload1"
-        >
-          <el-icon>
-            <plus></plus>
-          </el-icon>
-        </el-upload>
-        <img class="uploaded-img uploaded-img1" v-if="urlRef1" :src="urlRef1" alt="img1">
-      </div>
-      <div class="img-container img-container2">
-        <el-upload
-          drag
-          class="upload upload2"
-          :show-file-list="false"
-          :before-upload="beforeUpload2"
-        >
-          <el-icon>
-            <plus></plus>
-          </el-icon>
-        </el-upload>
-        <img class="uploaded-img uploaded-img2" v-if="urlRef2" :src="urlRef2" alt="img2">
-      </div>
+    <main
+      ref="mainArea"
+      class="page-main"
+      :style="sizeStyleObj"
+      @fullscreenchange="handleFullscreenchange"
+    >
+      <upload-img
+        ref="uploadImg1"
+        class="upload-img1"
+        :style="{width: dec2per(position)}"
+        :enable-upload="enableUpload"
+        @upload="handleUpload1"
+      ></upload-img>
+      <upload-img
+        ref="uploadImg2"
+        class="upload-img2"
+        :enable-upload="enableUpload"
+        @upload="handleUpload2"
+      ></upload-img>
       <movable-divider
-        :position="position"
-        :container-width="width"
-        @move="handleMove"
+        v-model:position="position"
+        :container-width="targetWidth"
       ></movable-divider>
     </main>
   </div>
 </template>
 
 <script lang="ts">
-const DEFAULT_WIDTH = 1280
-const DEFAULT_HEIGHT = 720
+const DEFAULT_SIZE = {
+  width: screen.width,
+  height: screen.height
+}
+const OFFSET_X = 128
+const OFFSET_Y = 128
+
+const DEFAULT_POSITION = 0.5
 </script>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
-import getImgSize from './utils/getImgSize.js'
-import useBlobUrl from '@/composables/useBlobUrl'
+import { computed, reactive, ref, toRef } from 'vue'
+import { FullScreen, Refresh, Switch, QuestionFilled, Lock, Unlock } from '@element-plus/icons-vue'
 import useViewportContain from '@/composables/useViewportContain'
 import MovableDivider from '@/components/MovableDivider.vue'
+import useToggleText from '@/composables/useToggleText'
+import HelpDoc from '@/components/HelpDoc.vue'
+import UploadImg from '@/components/UploadImg.vue'
+import { Size } from '@/common/types'
+import useLastSize from '@/composables/useLastSize'
 import { dec2per } from '@/utils/MathUtils'
 
-const imgWidth = ref(DEFAULT_WIDTH)
-const imgHeight = ref(DEFAULT_HEIGHT)
+const viewportOffsetX = ref(OFFSET_X)
+const viewportOffsetY = ref(OFFSET_Y)
+
+const size1 = reactive({ ...DEFAULT_SIZE })
+const size2 = reactive({ ...DEFAULT_SIZE })
+const handleUpload1 = (size: Size) => void Object.assign(size1, size)
+const handleUpload2 = (size: Size) => void Object.assign(size2, size)
+
+const lastSize = useLastSize(size1, size2)
 const {
-  width,
-  height
-} = useViewportContain(imgWidth, imgHeight, 64, 64)
+  width: targetWidth,
+  height: targetHeight
+} = useViewportContain(
+  toRef(lastSize, 'width'),
+  toRef(lastSize, 'height'),
+  viewportOffsetX,
+  viewportOffsetY
+)
 const sizeStyleObj = computed(() => ({
-  width: width.value + 'px',
-  height: height.value + 'px'
+  width: targetWidth.value + 'px',
+  height: targetHeight.value + 'px'
 }))
 
-const {
-  urlRef: urlRef1,
-  setUrl: setUrl1
-} = useBlobUrl()
-const beforeUpload1 = (file: File) => {
-  setUrl1(file)
-  getImgSize(urlRef1.value)
-    .then(({ width, height }) => {
-      imgWidth.value = width
-      imgHeight.value = height
-    })
-  return false
+const position = ref(DEFAULT_POSITION)
+
+// 切换
+let img1 = true
+const switchImg = () => {
+  img1 = !img1
+  position.value = Number(img1)
+}
+const curImgName = computed(() => {
+  switch (position.value) {
+    case 0:
+      return '图片2'
+    case 1:
+      return '图片1'
+    default:
+      return '比较'
+  }
+})
+
+// 全屏
+const handleFullscreenchange = () => {
+  if (document.fullscreenElement) {
+    viewportOffsetX.value = 0
+    viewportOffsetY.value = 0
+  } else {
+    viewportOffsetX.value = OFFSET_X
+    viewportOffsetY.value = OFFSET_Y
+  }
+}
+const mainArea = ref<HTMLElement | null>(null)
+const switchFullscreen = () => {
+  document.fullscreenElement
+    ? document.exitFullscreen()
+    : mainArea.value?.requestFullscreen()
 }
 
-const {
-  urlRef: urlRef2,
-  setUrl: setUrl2
-} = useBlobUrl()
-const beforeUpload2 = (file: File) => {
-  setUrl2(file)
-  return false
+// 重置
+const uploadImg1 = ref<InstanceType<typeof UploadImg> | null>(null)
+const uploadImg2 = ref<InstanceType<typeof UploadImg> | null>(null)
+const reset = () => {
+  uploadImg1.value?.clear()
+  uploadImg2.value?.clear()
+  Object.assign(size1, { ...DEFAULT_SIZE })
+  Object.assign(size2, { ...DEFAULT_SIZE })
+  position.value = DEFAULT_POSITION
 }
 
-const position = ref(0.5)
-const handleMove = (v: number) => position.value = v
+// 启用/禁用上传
+const {
+  bool: enableUpload,
+  text,
+  toggle
+} = useToggleText('启用', '禁用', true)
 
-const img1 = ref(true)
-watch(img1, nv => position.value = Number(nv))
+// 快捷键
+document.addEventListener('keypress', ({ key }) => {
+  switch (key) {
+    case 's':
+      switchImg()
+      break
+    case 'f':
+      switchFullscreen()
+      break
+    case 'r':
+      reset()
+      break
+    case 'l':
+      toggle()
+      break
+  }
+})
 </script>
 
 <style scoped lang="less">
-main {
+.page-header {
+  margin-inline: auto 32px;
+  padding-block: 20px;
+  max-width: 100%;
+  width: 1280px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  .cur-img {
+    margin-right: 2em;
+    color: #333;
+  }
+}
+
+.page-main {
   position: relative;
   margin: 0 auto;
   display: flex;
 }
 
-.img-container {
-  position: relative;
-  min-width: 0;
-
-  &.img-container2 {
-    flex: 1;
-  }
+.upload-img1:deep(img) {
+  object-position: 0 0;
 }
 
-.img-container > .upload,
-.img-container > .uploaded-img {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
+.upload-img2 {
+  flex: 1;
 
-.upload:deep(.el-upload) {
-  height: 100%;
-}
-
-.upload:deep(.el-upload-dragger) {
-  padding: 0;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.uploaded-img {
-  user-select: none;
-  pointer-events: none;
-  object-fit: cover;
-
-  &.uploaded-img1 {
-    object-position: 0 0;
-  }
-
-  &.uploaded-img2 {
+  :deep(img) {
     object-position: 100% 100%;
   }
 }
-</style>
 
+.movable-divider {
+  background-clip: content-box;
+  background-color: #2ea9df;
+}
+</style>

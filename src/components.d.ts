@@ -12,8 +12,10 @@ declare module '@vue/runtime-core' {
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElIcon: typeof import('element-plus/es')['ElIcon']
-    ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ElPopover: typeof import('element-plus/es')['ElPopover']
     ElUpload: typeof import('element-plus/es')['ElUpload']
-    MovableDivider: typeof import('./src/components/MovableDivider.vue')['default']
+    HelpDoc: typeof import('./components/HelpDoc.vue')['default']
+    MovableDivider: typeof import('./components/MovableDivider.vue')['default']
+    UploadImg: typeof import('./components/UploadImg.vue')['default']
   }
 }

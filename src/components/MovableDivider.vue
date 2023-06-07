@@ -16,7 +16,7 @@ type MovableDividerProps = {
 }
 const props = defineProps<MovableDividerProps>()
 const emit = defineEmits<{
-  (e: 'move', v: number): void
+  (e: 'update:position', v: number): void
 }>()
 
 let dragging = false
@@ -35,7 +35,7 @@ const handlePointermove = (e: PointerEvent) => {
 
   const percentage = (e.clientX - startClientX) / props.containerWidth
   const positionResult = startPosition + percentage
-  emit('move', clamp(positionResult, 0, 1))
+  emit('update:position', clamp(positionResult, 0, 1))
 }
 const handlePointerup = () => {
   dragging = false
@@ -62,7 +62,7 @@ onUnmounted(() => {
 
   padding-inline: var(--padding);
   height: 100%;
-  width: 1px;
+  width: 2px;
   transform: translateX(-50%);
 
   user-select: none;
@@ -78,8 +78,8 @@ onUnmounted(() => {
     content: "";
     border: solid #0000;
     border-width: 0 6px 12px;
+    border-bottom-color: #2ea9df;
     transform: translateY(16px);
-    border-bottom-color: #1e90ff;
   }
 }
 </style>

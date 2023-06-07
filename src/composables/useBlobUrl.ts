@@ -4,11 +4,13 @@ const useBlobUrl = () => {
   const urlRef = ref('')
   const revoke = () => URL.revokeObjectURL(urlRef.value)
 
-  const setUrl = (blob: Blob) => {
+  const setUrl = (source: Blob | string) => {
     revoke()
-    urlRef.value = URL.createObjectURL(blob)
+    urlRef.value =
+      typeof source === 'string'
+        ? source
+        : URL.createObjectURL(source)
   }
-
   onUnmounted(revoke)
 
   return {

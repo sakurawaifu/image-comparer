@@ -1,4 +1,4 @@
-const getImgSize = (url: String): Promise<{
+const getImgSize = (url: string): Promise<{
   width: number,
   height: number
 }> =>

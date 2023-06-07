@@ -4,7 +4,6 @@ const useContain = (wContent: Ref<number>, hContent: Ref<number>, wLimit: Ref<nu
   const width = ref(wContent.value)
   const height = ref(hContent.value)
 
-
   watchEffect(() => {
     if (wContent.value <= wLimit.value && hContent.value <= hLimit.value) {
       width.value = wContent.value

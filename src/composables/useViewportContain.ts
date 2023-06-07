@@ -2,14 +2,14 @@ import useViewportSize from '@/composables/useViewportSize'
 import useContain from '@/composables/useContain'
 import { computed, Ref } from 'vue'
 
-const useViewportContain = (wContent: Ref<number>, hContent: Ref<number>, offsetX: number = 0, offsetY: number = 0) => {
+const useViewportContain = (wContent: Ref<number>, hContent: Ref<number>, offsetX: Ref<number>, offsetY: Ref<number>) => {
   const {
-    vWidth,
-    vHeight
+    width: vWidth,
+    height: vHeight
   } = useViewportSize()
 
-  const wLimit = computed(() => vWidth.value - offsetX)
-  const hLimit = computed(() => vHeight.value - offsetY)
+  const wLimit = computed(() => vWidth.value - offsetX.value)
+  const hLimit = computed(() => vHeight.value - offsetY.value)
 
   const {
     width,

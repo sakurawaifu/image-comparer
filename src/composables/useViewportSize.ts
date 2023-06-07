@@ -1,17 +1,17 @@
 import { ref } from "vue"
 
 const useViewportSize = () => {
-  const vWidth = ref(window.innerWidth)
-  const vHeight = ref(window.innerHeight)
+  const width = ref(window.innerWidth)
+  const height = ref(window.innerHeight)
 
   window.addEventListener('resize', () => {
-    vWidth.value = window.innerWidth
-    vHeight.value = window.innerHeight
+    width.value = window.innerWidth
+    height.value = window.innerHeight
   })
 
   return {
-    vWidth,
-    vHeight
+    width,
+    height
   }
 }
 
