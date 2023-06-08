@@ -211,15 +211,11 @@ document.addEventListener('keypress', ({ key }) => {
   display: flex;
 }
 
-.upload-img1:deep(img) {
-  object-position: 0 0;
-}
-
 .upload-img2 {
   flex: 1;
 
   :deep(img) {
-    object-position: 100% 100%;
+    right: 0;
   }
 }
 

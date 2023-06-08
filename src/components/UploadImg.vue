@@ -53,13 +53,17 @@ defineExpose({
 <style scoped lang="less">
 .upload-img {
   position: relative;
+  overflow: hidden;
 }
 
 .upload,
 img {
   position: absolute;
-  width: 100%;
   height: 100%;
+}
+
+.upload {
+  width: 100%;
 }
 
 .upload:deep(.el-upload) {
